@@ -17,7 +17,7 @@ namespace WebSocketProxy
 {
     internal class TcpHost : IDisposable
     {
-        public string ClinetId { get; set; }
+        
 
         private bool _closed;
 

@@ -6,6 +6,8 @@ namespace WebSocketProxy
 {
     internal class TcpRoute : IDisposable
     {
+        public string ClinetId { get; set; }
+
         private readonly TcpHost _clientMachine;
         private readonly TcpHost _serverMachine;
 
@@ -130,7 +132,7 @@ namespace WebSocketProxy
 
             Console.WriteLine(DecodeBoltProtocol(payload));
 
-            Console.WriteLine($"socket id: {host.ClinetId}");
+            Console.WriteLine($"socket id: {ClinetId}");
 
             Console.WriteLine(string.Join(" | ", Decoder.Deserialize(payload)));
         }

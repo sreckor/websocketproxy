@@ -170,14 +170,13 @@ namespace WebSocketProxy
                     TcpHost serverMachine = TcpHost.ManufactureDefault(serverMachineHost.IpAddress,
                         serverMachineHost.Port);
 
-                    serverMachine.ClinetId = packet.GetHeaderOrDefault("sec-websocket-key", null);
-
                     //Handle this in connection manager - route will be there
-                    Console.WriteLine($"socket id: {serverMachine.ClinetId}");
 
                     serverMachine.Send(data, numBytes);
 
                     TcpRoute route = new TcpRoute(clientMachine, serverMachine);
+                    route.ClinetId = packet.GetHeaderOrDefault("sec-websocket-key", null);
+
                     _tcpConnectionManager.AddRoute(route);
                 }
                 else
