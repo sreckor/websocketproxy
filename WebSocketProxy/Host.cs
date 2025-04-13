@@ -8,7 +8,7 @@ namespace WebSocketProxy
         {
             Port = -1;
         }
-        
+
         public IPAddress IpAddress { get; set; }
 
         public int Port { get; set; }
@@ -18,8 +18,8 @@ namespace WebSocketProxy
             get
             {
                 return Port != -1 && IpAddress != null;
-            } 
-        } 
+            }
+        }
 
         public override string ToString()
         {

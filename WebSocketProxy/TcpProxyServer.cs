@@ -151,6 +151,8 @@ namespace WebSocketProxy
 
                 HttpPacket packet = HttpPacketBuilder.BuildPacket(stringData);
 
+                //Console.WriteLine(packet.ToString());
+
                 if (packet == null)
                 {
                     clientMachine.Close();
@@ -161,10 +163,17 @@ namespace WebSocketProxy
                     ? _configuration.WebSocketHost
                     : _configuration.HttpHost;
 
+                
+
                 if (serverMachineHost != null && serverMachineHost.IsSpecified)
                 {
                     TcpHost serverMachine = TcpHost.ManufactureDefault(serverMachineHost.IpAddress,
                         serverMachineHost.Port);
+
+                    serverMachine.ClinetId = packet.GetHeaderOrDefault("sec-websocket-key", null);
+
+                    //Handle this in connection manager - route will be there
+                    Console.WriteLine($"socket id: {serverMachine.ClinetId}");
 
                     serverMachine.Send(data, numBytes);
 
@@ -176,7 +185,7 @@ namespace WebSocketProxy
                     clientMachine.Close();
                 }
             }
-            catch (IOException) {}
+            catch (IOException) { }
         }
 
         public void Dispose()

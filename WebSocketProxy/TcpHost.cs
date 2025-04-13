@@ -1,18 +1,26 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Reflection.Emit;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace WebSocketProxy
 {
     internal class TcpHost : IDisposable
     {
+        public string ClinetId { get; set; }
+
         private bool _closed;
-        
+
         #region Events
 
         public delegate void DataAvailableDelegate(TcpHost host, byte[] data, int length);
@@ -66,7 +74,7 @@ namespace WebSocketProxy
             _tcpClient = tcpClient;
             Stream = _tcpClient.GetStream();
         }
-        
+
 
         #endregion
 
@@ -78,7 +86,7 @@ namespace WebSocketProxy
 
             SslStream sslStream = new SslStream(Stream, false);
             Stream = sslStream;
-            await sslStream.AuthenticateAsServerAsync(certificate);   
+            await sslStream.AuthenticateAsServerAsync(certificate);
         }
 
         public void BeginAuthenticationAsServer(X509Certificate2 certificate, SslProtocols protocols, AsyncCallback callback, object state)
@@ -99,6 +107,28 @@ namespace WebSocketProxy
             Stream = sslStream;
         }
 
+        public static byte[] Decompress(byte[] data)
+        {
+            MemoryStream input = new MemoryStream(data);
+            MemoryStream output = new MemoryStream();
+            using (DeflateStream dstream = new DeflateStream(input, CompressionMode.Decompress))
+            {
+                dstream.CopyTo(output);
+            }
+            return output.ToArray();
+        }
+
+
+        public static string ByteArrayToHex(byte[] a)
+        {
+            StringBuilder sb = new StringBuilder(a.Length * 2);
+            foreach (byte b in a)
+            {
+                sb.AppendFormat("{0:x2}", b);
+            }
+            return sb.ToString();
+        }
+
         public void Send(byte[] data, int length)
         {
             try
@@ -107,13 +137,13 @@ namespace WebSocketProxy
                 {
                     Stream.Write(data, 0, length);
                 }
-                
+
             }
             catch (Exception)
             {
                 OnDisconnected();
             }
-            
+
         }
 
         public void StartReading()
@@ -129,7 +159,7 @@ namespace WebSocketProxy
             {
                 OnDisconnected();
             }
-            
+
         }
 
         private void ReadAsyncCallback(IAsyncResult asyncResult)
@@ -182,7 +212,7 @@ namespace WebSocketProxy
             {
                 //
             }
-            
+
         }
 
         public void Dispose()
