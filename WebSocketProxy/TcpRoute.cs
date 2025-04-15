@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace WebSocketProxy
 {
@@ -75,6 +76,7 @@ namespace WebSocketProxy
             return message;
         }
 
+        //https://stackoverflow.com/questions/52961607/websocket-and-tcp
         public static byte[] DecodeMessage(Byte[] bytes)
         {
             //string incomingData = string.Empty;
@@ -112,16 +114,22 @@ namespace WebSocketProxy
 
         void _serverMachine_DataAvailable(TcpHost host, byte[] data, int length)
         {
-            //_clientMachine.
-
             _clientMachine.Send(data, length);
 
-            //var payload = DecodeMessage(data.Take(length).ToArray());
-            //Console.WriteLine(DecodeBoltProtocol(payload));
+            var payload = DecodeMessage(data.Take(length).ToArray());
 
-            // Decoder.Deserialize(payload);
+            var boltProtocol = DecodeBoltProtocol(payload);
 
-            // Console.WriteLine(string.Join(",", Decoder.Deserialize(payload)));
+            if (!boltProtocol.StartsWith("Unknown message type"))
+            {
+                Console.WriteLine(boltProtocol);
+                Console.WriteLine($"socket id: {ClinetId}");
+                Console.WriteLine("Server BOLT: " + string.Join(" | ", MessageUnpacker.Unpack(payload.Skip(1).ToArray())));
+            }
+            else
+            {
+                //Console.WriteLine("Server WS: " + Encoding.UTF8.GetString(payload));
+            }
         }
 
         void _clientMachine_DataAvailable(TcpHost host, byte[] data, int length)
@@ -130,11 +138,18 @@ namespace WebSocketProxy
 
             var payload = DecodeMessage(data.Take(length).ToArray());
 
-            Console.WriteLine(DecodeBoltProtocol(payload));
+            var boltProtocol = DecodeBoltProtocol(payload);
 
-            Console.WriteLine($"socket id: {ClinetId}");
-
-            Console.WriteLine(string.Join(" | ", Decoder.Deserialize(payload)));
+            if (!boltProtocol.StartsWith("Unknown message type"))
+            {
+                Console.WriteLine(boltProtocol);
+                Console.WriteLine($"socket id: {ClinetId}");
+                Console.WriteLine("Clinet BOLT: " + string.Join(" | ", MessageUnpacker.Unpack(payload.Skip(1).ToArray())));
+            }
+            else
+            {
+                //Console.WriteLine("Clinet WS: " + Encoding.UTF8.GetString(payload));
+            }
         }
 
         void _serverMachine_Disconnected(TcpHost host)
